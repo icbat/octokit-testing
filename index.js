@@ -1,8 +1,10 @@
 const { Octokit } = require("@octokit/rest");
+// this token needs REPO access to be able to do its work. Otherise you'll start seeing 404's later in the program
 console.log(process.env.GH_TOKEN)
 const octokit = new Octokit({ auth: process.env.GH_TOKEN })
 
 
+// this whole concept is worth some discussion. how to handle this? GH is moving from master -> main in new repos
 const get_default_branch = async (args) => {
     const branches_to_consider = ['main', 'master']
     
@@ -20,21 +22,18 @@ const main = async function() {
     const { name } = await get_default_branch({owner, repo})
     const ref = `heads/${name}`
 
-    const {data: {object: {sha: latest_commit_sha} }} = await octokit.git.getRef({ owner, repo, ref: `heads/${name}`})
+    const {data: {object: {sha: latest_commit_sha} }} = await octokit.git.getRef({ owner, repo, ref})
 
-    const content = "thisIsContent"
-    const encoding = 'utf-8' // only other option is base64, we probably wnat that to minimize bandwidth usage, will need to import
-    const { data: {sha: blob_sha} } = await octokit.git.createBlob({owner, repo, content, encoding})
-    console.log('blob sha', blob_sha)
-    
     const tree = [{
         path: 'asdf.txt',
-        mode: '100644', // blob  (but not executable)
+        mode: '100644',
         type: 'blob',
-        // sha: null, // use only if you do an individual step to make the blog, if so kill content
-        // content: 'this is content definitely \n a great file',
-        sha: blob_sha, // use only if you do an individual step to make the blog, if so kill content
-        // content: 'this is content definitely \n a great file',
+
+        // docs say this can be null, but Javascript says otherwise :(
+        // sha: null, 
+
+        // this is an alternative to having an additional step that creates a Blog on its own
+        content: 'This is a super cool file',
     }]
 
     const { data: { sha: tree_sha } } = await octokit.git.createTree({ owner, repo, tree, base_tree: latest_commit_sha})
