@@ -1,0 +1,4 @@
+node_modules/
+
+# Environment variable for GH secret token, etc.
+secret.sh
