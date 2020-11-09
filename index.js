@@ -18,7 +18,7 @@ const main = async function() {
     const owner = "icbat"
 
     const { name } = await get_default_branch({owner, repo})
-    const ref = `refs/heads/${name}`
+    const ref = `heads/${name}`
 
     const {data: {object: {sha: latest_commit_sha} }} = await octokit.git.getRef({ owner, repo, ref: `heads/${name}`})
 
@@ -28,7 +28,7 @@ const main = async function() {
     console.log('blob sha', blob_sha)
     
     const tree = [{
-        path: 'README.md',
+        path: 'asdf.txt',
         mode: '100644', // blob  (but not executable)
         type: 'blob',
         // sha: null, // use only if you do an individual step to make the blog, if so kill content
@@ -43,7 +43,7 @@ const main = async function() {
     const message = `Automated commit - SPIKE REPO: ${Math.random()}`
     const parents = [latest_commit_sha]
     // author and committer are optional args here for overriding the auth'd user as the committer/author. could be useful.
-    const {data: { sha: new_commit_sha }} = await octokit.git.createCommit({ owner, repo, message, tree_sha, parents})
+    const {data: { sha: new_commit_sha }} = await octokit.git.createCommit({ owner, repo, message, tree: tree_sha, parents})
 
     console.log('committing')
     await octokit.git.updateRef({owner, repo, ref, sha: new_commit_sha})
